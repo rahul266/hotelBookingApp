@@ -60,28 +60,34 @@ const Card = ({ id, UUID, name, descreption, pricePerNight, onClick }) => {
 
     const handleBookClick = async () => {
         const fetchData = async () => {
-            const response = await fetch(`http://localhost:8000/v1/booking/block-dates`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': 'Bearer ' + Cookies.get('token')
-                },
-                body: JSON.stringify({
-                    "hotelId": UUID,
-                    "checkInDate": startDate,
-                    "checkOutDate":endDate
-                })
-            });
+            try {
+                const response = await fetch(`http://localhost:8000/v1/booking/block-dates`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'authorization': 'Bearer ' + Cookies.get('token')
+                    },
+                    body: JSON.stringify({
+                        "hotelId": UUID,
+                        "checkInDate": startDate,
+                        "checkOutDate": endDate
+                    })
+                });
             
-            if (response.status===200) {
-                const data = await response.json()
-                console.log({ totalPrice, startDate, endDate })
-                onClick({ totalPrice, startDate, endDate }); 
+                if (response.status === 200) {
+                    const data = await response.json()
+                    console.log({ totalPrice, startDate, endDate })
+                    onClick({ totalPrice, startDate, endDate });
+                }
+                else if (response.status === 401) {
+                    logout()
+                } else if (response.status === 409) {
+                    const data = await response.json()
+                    throw new Error(data?.error.message);
+                }
             }
-            else if (response.status === 401) {
-                logout()
-            } else if (response.status === 409) {
-                console.log("dates currently in processing..")
+            catch(err) {
+                alert(err)
             }
         }
         fetchData()
